@@ -9,10 +9,11 @@ import android.graphics.Paint
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
-import android.support.v4.content.FileProvider
+import androidx.core.content.FileProvider
 import android.util.Log
 import com.abcd.firebasemlkt01.R
 import com.abcd.firebasemlkt01.ui.MainActivity
+import com.abcd.firebasemlkt01.ui.utils.CurvedBottomNavigationView
 import com.abcd.firebasemlkt01.ui.view.MainView
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
@@ -20,6 +21,8 @@ import com.google.firebase.ml.vision.text.FirebaseVisionText
 import com.nabinbhandari.android.permissions.PermissionHandler
 import com.nabinbhandari.android.permissions.Permissions
 import com.theartofdev.edmodo.cropper.CropImage
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -98,8 +101,32 @@ class MainPresenter(private val mainActivity: MainActivity) : MainView.Presenter
 
     override fun onGettingBitmapForImageView(bitmap: Bitmap) {
         mainActivity.showDialog()
-        mainActivity.setBitmapOnImageView(bitmap)
-        onGettingVisionBitmapAnalysis(bitmap)
+        doAsync {
+            mainActivity.showDialog()
+            /**
+             * make image blure
+             */
+
+            var darkFilt = bitmap
+            if (false) {
+                darkFilt = CurvedBottomNavigationView.fastblur(bitmap, 2f, 20)
+
+            }
+            if (false) {
+                darkFilt = CurvedBottomNavigationView.applyDarkFilter(darkFilt)
+
+            }
+            if (false) {
+                darkFilt = CurvedBottomNavigationView.createInvertedBitmap(darkFilt)
+            }
+            if (true) {
+                darkFilt = CurvedBottomNavigationView.createContrast(darkFilt, (10).toDouble())
+            }
+
+            uiThread {
+                onGettingVisionBitmapAnalysis(darkFilt)
+            }
+        }
     }
 
     override fun onGettingBitmapURIForCrop(bitmapURI: Uri) {
